@@ -15,7 +15,6 @@
 package external
 
 import (
-	"bufio"
 	"context"
 	"io"
 
@@ -28,6 +27,7 @@ import (
 	"github.com/matrixorigin/matrixone/pkg/objectio"
 	"github.com/matrixorigin/matrixone/pkg/pb/pipeline"
 	"github.com/matrixorigin/matrixone/pkg/sql/colexec"
+	"github.com/matrixorigin/matrixone/pkg/sql/crt"
 	"github.com/matrixorigin/matrixone/pkg/sql/parsers/tree"
 	"github.com/matrixorigin/matrixone/pkg/sql/plan"
 	"github.com/matrixorigin/matrixone/pkg/sql/util/csvparser"
@@ -268,7 +268,14 @@ func newCSVParserFromReader(extern *tree.ExternParam, r io.Reader) (*csvparser.C
 		Comment:            '#',
 	}
 
-	return csvparser.NewCSVParser(&config, bufio.NewReader(r), csvparser.ReadBlockSize, false)
+	blockSize := csvparser.ReadBlockSize
+	// Compressed streams are single-reader by design; use a larger parser read block
+	// to reduce read/decompress call overhead on the hot path.
+	if crt.GetCompressType(extern.CompressType, extern.Filepath) != tree.NOCOMPRESS {
+		blockSize *= 4
+	}
+
+	return csvparser.NewCSVParser(&config, r, blockSize, false)
 }
 
 type ParquetHandler struct {
