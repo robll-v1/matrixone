@@ -36,7 +36,7 @@ func (d *LogServiceDriver) Append(e *entry.Entry) (err error) {
 }
 
 func (d *LogServiceDriver) getCommitter() *groupCommitter {
-	if int(d.committer.writer.ApproxSize()) > d.config.ClientBufSize {
+	if int(d.committer.writer.ApproxSize())*2 > d.config.ClientBufSize {
 		d.flushCurrentCommitter()
 	}
 

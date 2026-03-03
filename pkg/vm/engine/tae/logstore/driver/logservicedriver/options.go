@@ -30,7 +30,7 @@ const (
 	DefaultClientBufSize       = 2 * mpool.MB
 	DefaultMaxTimeout          = time.Minute * 3
 	DefaultOneTryTimeout       = time.Minute
-	DefaultClientMaxEntryCount = 50
+	DefaultClientMaxEntryCount = 10
 )
 
 type Config struct {
